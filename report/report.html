@@ -1,0 +1,256 @@
+<!doctype html><html lang="en"><head><meta charset="utf-8"><title>BioPolymer Lab Twin — Aholo Hackathon Report</title><style>@page{size:A4;margin:16mm}body{font-family:-apple-system,Segoe UI,Helvetica,Arial,sans-serif;color:#222;line-height:1.45;font-size:10.5pt;max-width:900px;margin:auto}
+h1{color:#5b2a86;margin-bottom:0}h2{color:#5b2a86;border-bottom:1px solid #ddd;padding-bottom:3px;margin-top:22px;page-break-after:avoid}
+table{border-collapse:collapse;width:100%;margin:8px 0;font-size:9.5pt;page-break-inside:avoid}th,td{border:1px solid #ccc;padding:4px 6px;text-align:left;vertical-align:top}th{background:#f1eaf8}
+code{background:#f4f4f4;padding:1px 3px;border-radius:3px;font-size:9pt}pre{background:#f4f4f4;padding:8px;border-radius:5px}
+blockquote{border-left:4px solid #e0a000;background:#fff8e1;margin:10px 0;padding:6px 12px}</style></head><body><h1>BioPolymer Lab Twin</h1>
+<p><strong>An interactive web-based digital twin of a biopolymer formulation lab, built with Lux3D 3D assets</strong></p>
+<p><em>Aholo Hackathon — Project Report (DRAFT, 2026-10-31 SGT)</em></p>
+<blockquote>
+<p><strong>EXAMPLE-DATA NOTICE:</strong> Every formulation, process, or instrument number in this report and in the demo is <strong>EXAMPLE</strong> placeholder data. None of it is a real, measured, or proprietary formulation.</p>
+</blockquote>
+<hr />
+<h2>1. Team</h2>
+<table>
+<thead>
+<tr>
+<th>Role</th>
+<th>Name</th>
+<th>Location</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Solo builder (concept, 3D assets, web build, report)</td>
+<td><strong>Yansong Li</strong></td>
+<td>Singapore</td>
+</tr>
+</tbody>
+</table>
+<p>Team type: <strong>Solo</strong>.</p>
+<hr />
+<h2>2. Concept</h2>
+<p>Biopolymer labs work with materials such as <strong>CMC (carboxymethyl cellulose)</strong>, <strong>chitosan</strong>, and <strong>hyaluronic acid (HA)</strong>. The work runs across several stations: a reactor, a rheometer, HPLC/SEC, a formulation bench, and sample vials. The context for each sample (process conditions, concentration, molecular weight, viscosity) usually ends up scattered across notebooks and spreadsheets.</p>
+<p><strong>BioPolymer Lab Twin</strong> is a lightweight, browser-based "digital lab twin":</p>
+<ul>
+<li>Each lab station and sample vial is a clickable tile in the web page.</li>
+<li>Clicking a station opens a parameter panel that shows its (EXAMPLE) process and material data.</li>
+<li>Each station has a 3D asset slot. When a slot is filled with a Lux3D-generated GLB model, the model renders in the page with orbit/rotate controls.</li>
+<li>The goal is a lab that is easy to understand at a glance for onboarding, teaching, outreach, and planning experiments, without CAD skills or a 3D artist.</li>
+</ul>
+<hr />
+<h2>3. Why Lux3D</h2>
+<ul>
+<li><strong>Text/image → 3D, fast.</strong> Each lab object (vial, reactor, rheometer, HPLC stack, bench, lab room) can be described in one prompt, or started from a reference photo. Hand-modelling every piece of equipment isn't practical for a solo hackathon build.</li>
+<li><strong>Web-ready output.</strong> Lux3D exports <strong>GLB</strong>, which goes straight into a standard web viewer (<code>&lt;model-viewer&gt;</code>) without conversion.</li>
+<li><strong>Consistent asset pipeline.</strong> The same prompt-to-GLB-to-slot workflow works for every station, so the twin can grow one asset at a time.</li>
+<li><strong>Low cost to try.</strong> The first asset was generated on the <strong>free trial</strong>. The account's <strong>3,300 credits are untouched</strong>.</li>
+</ul>
+<hr />
+<h2>4. Build Process</h2>
+<h3>4.1 Idea</h3>
+<ul>
+<li>Pick the stations that matter in a biopolymer formulation workflow: Reactor, Rheometer, HPLC, Formulation bench, and sample vials for CMC, Chitosan, and HA.</li>
+<li>Define one <strong>asset slot</strong> per station (<code>asset-reactor</code>, <code>asset-rheometer</code>, <code>asset-hplc</code>, <code>asset-bench</code>, <code>asset-vial-cmc</code>, <code>asset-vial-chitosan</code>, <code>asset-vial-ha</code>) plus an environment slot (<code>asset-lab-room</code>).</li>
+<li>Write a Lux3D prompt for each slot (recorded in <code>PLACEHOLDERS.md</code>) and collect reference images in <code>refs/</code> (vials, reactor, lab glassware).</li>
+</ul>
+<h3>4.2 Lux3D assets</h3>
+<ul>
+<li>Generate the first asset in Lux3D: <strong>HA Serum Bottle</strong>, the 3D model for the hyaluronic acid sample vial.</li>
+<li>Export from Lux3D as <strong>GLB</strong> (export id <code>lux3d_g1_7720</code>). Raw exports are kept in <code>assets/lux3d_export/</code> and <code>assets/lux3d_model_exports.zip</code>.</li>
+<li>Copy the GLB to <code>assets/ha-serum-bottle.glb</code> (byte-identical to <code>lux3d_g1_7720.glb</code>, about 10.9 MB) and wire it into the HA station.</li>
+</ul>
+<h3>4.3 Interactive web twin</h3>
+<ul>
+<li>Static site: <code>index.html</code> + <code>style.css</code> + <code>app.js</code>. No build step and no paid APIs.</li>
+<li><code>app.js</code> holds one data list of stations. A station with <code>asset: null</code> shows <strong>"EMPTY / UNVERIFIED — Lux3D asset pending"</strong>. A station with a <code>.glb</code> path renders the model in Google's <code>&lt;model-viewer&gt;</code> web component (v3.5.0, loaded from the Google CDN) with camera controls, auto-rotate, and a download link.</li>
+<li>The HA station opens by default, so the Lux3D model is the first thing a viewer sees.</li>
+<li>To fill a slot: generate in Lux3D → export GLB → drop it into <code>assets/</code> → set that station's <code>asset</code> field in <code>app.js</code>.</li>
+</ul>
+<hr />
+<h2>5. Asset Inventory</h2>
+<p>Status as of <strong>2026-10-31 SGT</strong>.</p>
+<table>
+<thead>
+<tr>
+<th>Slot ID</th>
+<th>Asset</th>
+<th>Lux3D asset name</th>
+<th>Status</th>
+<th>Local path</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>asset-vial-ha</code></td>
+<td>Hyaluronic acid sample vial</td>
+<td><strong>HA Serum Bottle</strong></td>
+<td><strong>FILLED</strong> (Lux3D, free trial; 3,300 credits untouched)</td>
+<td><code>assets/ha-serum-bottle.glb</code> (source export <code>assets/lux3d_export/lux3d_g1_7720.glb</code>)</td>
+</tr>
+<tr>
+<td><code>asset-vial-cmc</code></td>
+<td>CMC sample vial</td>
+<td>—</td>
+<td>EMPTY / UNVERIFIED</td>
+<td>—</td>
+</tr>
+<tr>
+<td><code>asset-vial-chitosan</code></td>
+<td>Chitosan sample vial</td>
+<td>—</td>
+<td>EMPTY / UNVERIFIED</td>
+<td>—</td>
+</tr>
+<tr>
+<td><code>asset-reactor</code></td>
+<td>Jacketed glass reactor</td>
+<td>—</td>
+<td>EMPTY / UNVERIFIED</td>
+<td>—</td>
+</tr>
+<tr>
+<td><code>asset-rheometer</code></td>
+<td>Rotational rheometer</td>
+<td>—</td>
+<td>EMPTY / UNVERIFIED</td>
+<td>—</td>
+</tr>
+<tr>
+<td><code>asset-hplc</code></td>
+<td>HPLC system</td>
+<td>—</td>
+<td>EMPTY / UNVERIFIED</td>
+<td>—</td>
+</tr>
+<tr>
+<td><code>asset-bench</code></td>
+<td>Formulation bench</td>
+<td>—</td>
+<td>EMPTY / UNVERIFIED</td>
+<td>—</td>
+</tr>
+<tr>
+<td><code>asset-lab-room</code></td>
+<td>Lab environment</td>
+<td>—</td>
+<td>EMPTY / UNVERIFIED (not yet wired into the UI)</td>
+<td>—</td>
+</tr>
+</tbody>
+</table>
+<p>Notes:
+- <strong>No Lux3D public share URLs are included.</strong> The only filled asset is referenced by its local GLB file path. A public link will be added only after it has been created and checked.
+- The reference images in <code>refs/</code> (<code>vial-ha.jpg</code>, <code>vial-ha-clean.jpg</code>, <code>vial-cmc-clean.jpg</code>, <code>vial-chitosan-clean.jpg</code>, <code>reactor.jpg</code>, <code>reactor-clean.jpg</code>, <code>lab-glass.jpg</code>) are inputs for generating the remaining assets.</p>
+<hr />
+<h2>6. Demo: How to Run</h2>
+<pre><code class="language-bash">cd /workspace/aholo-lab-twin
+python3 -m http.server 8000
+# then open http://localhost:8000 in a browser
+</code></pre>
+<p>What to look at:
+1. The page opens with the <strong>Vial: HA</strong> station selected. The <strong>HA Serum Bottle</strong> Lux3D model renders and auto-rotates. Drag to orbit and scroll to zoom.
+2. Click the other stations (Reactor, Rheometer, HPLC, Formulation bench, Vial: CMC, Vial: Chitosan). Each one shows its EXAMPLE parameter table and its slot status (<code>EMPTY / UNVERIFIED — Lux3D asset pending</code>).
+3. Each tile shows its slot ID and status (<code>Lux3D ready</code> or <code>EMPTY</code>).</p>
+<p>Requirements: a modern browser. Internet access is needed once to load the <code>&lt;model-viewer&gt;</code> script from the Google CDN. The site has to be served over HTTP (as above), not opened as <code>file://</code>, so the GLB can load.</p>
+<hr />
+<h2>7. EXAMPLE-Data Disclaimer</h2>
+<p>All numbers in the demo are <strong>EXAMPLE</strong> placeholders for illustration only. They are <strong>not</strong> real, measured, validated, or proprietary formulation or process data, and must not be used for lab work. Examples as shown in the app:</p>
+<table>
+<thead>
+<tr>
+<th>Station</th>
+<th>Parameter (all EXAMPLE)</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Reactor</td>
+<td>Volume 5 L (EXAMPLE) · Temperature 60 °C (EXAMPLE) · Stir rate 300 rpm (EXAMPLE) · Batch EX-001 (EXAMPLE)</td>
+</tr>
+<tr>
+<td>Rheometer</td>
+<td>Cone-plate 40 mm (EXAMPLE) · Shear rate 0.1–100 s⁻¹ (EXAMPLE) · Temp 25 °C (EXAMPLE) · Viscosity — (placeholder)</td>
+</tr>
+<tr>
+<td>HPLC</td>
+<td>SEC column (EXAMPLE) · Flow 1.0 mL/min (EXAMPLE) · Run time 30 min (EXAMPLE) · Mw — (placeholder)</td>
+</tr>
+<tr>
+<td>Formulation bench</td>
+<td>Target conc. 1.0 % w/v (EXAMPLE) · pH 7.0 (EXAMPLE) · Buffer PBS (EXAMPLE)</td>
+</tr>
+<tr>
+<td>Vial: CMC</td>
+<td>MW ~250 kDa (EXAMPLE) · 2 % w/v (EXAMPLE) · Viscosity — (placeholder)</td>
+</tr>
+<tr>
+<td>Vial: Chitosan</td>
+<td>MW ~150 kDa (EXAMPLE) · 1 % w/v in 1 % acetic acid (EXAMPLE) · Viscosity — (placeholder)</td>
+</tr>
+<tr>
+<td>Vial: HA</td>
+<td>MW ~1 MDa (EXAMPLE) · 0.5 % w/v (EXAMPLE) · Viscosity — (placeholder)</td>
+</tr>
+</tbody>
+</table>
+<p>The UI marks this too: an "EXAMPLE DATA ONLY" header badge, an "EXAMPLE" badge on every panel, and a footer disclaimer.</p>
+<hr />
+<h2>8. Timeline (toward the deadline)</h2>
+<p><strong>Submission deadline: 2026-11-19 19:00 SGT</strong> (UTC+8).</p>
+<table>
+<thead>
+<tr>
+<th>Date (SGT)</th>
+<th>Milestone</th>
+<th>Status</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>≤ 2026-10-31</td>
+<td>Concept, station list, asset slots, Lux3D prompts, reference images, static web twin with EXAMPLE data</td>
+<td>Done</td>
+</tr>
+<tr>
+<td>2026-10-31</td>
+<td>First Lux3D asset (HA Serum Bottle) exported as GLB and wired into the HA station</td>
+<td>Done</td>
+</tr>
+<tr>
+<td>2026-11-01 → 11-08</td>
+<td>Generate the remaining vial assets (CMC, Chitosan) and the equipment assets (Reactor, Rheometer, HPLC, Bench) in Lux3D, then wire them in</td>
+<td>Planned</td>
+</tr>
+<tr>
+<td>2026-11-09 → 11-12</td>
+<td>Optional lab-room environment asset; UI polish; check GLB sizes and load times</td>
+<td>Planned</td>
+</tr>
+<tr>
+<td>2026-11-13 → 11-16</td>
+<td>Record demo video and screenshots; finalize this report</td>
+<td>Planned</td>
+</tr>
+<tr>
+<td>2026-11-17 → 11-18</td>
+<td>Buffer for fixes; final review that all data is labelled EXAMPLE</td>
+<td>Planned</td>
+</tr>
+<tr>
+<td><strong>2026-11-19, before 19:00 SGT</strong></td>
+<td>Submit through <strong>My Submission</strong>: <a href="https://www.aholo.ai/hackathon/my">https://www.aholo.ai/hackathon/my</a></td>
+<td>Not yet submitted</td>
+</tr>
+</tbody>
+</table>
+<hr />
+<h2>9. Optional: Sharing on X</h2>
+<p>After submitting, the project can optionally be shared on X with the hashtag <strong>#Manycorehackathon</strong> (for example, a short clip of the rotating HA Serum Bottle in the twin). This is optional and <strong>not done yet</strong>. Nothing has been posted.</p>
+<hr />
+<h2>10. Links &amp; Files</h2>
+<ul>
+<li>My Submission page: <a href="https://www.aholo.ai/hackathon/my">https://www.aholo.ai/hackathon/my</a></li>
+<li>Project folder: <code>/workspace/aholo-lab-twin</code> (<code>index.html</code>, <code>style.css</code>, <code>app.js</code>, <code>README.md</code>, <code>PLACEHOLDERS.md</code>, <code>assets/</code>, <code>refs/</code>)</li>
+<li>Lux3D public share URLs: <strong>none included</strong> (not yet created or verified)</li>
+</ul>
+<p><em>Draft prepared 2026-10-31 SGT. Not submitted.</em></p></body></html>

@@ -1,0 +1,9 @@
+# keep GLBs for Pages; skip bulky intermediates
+assets/lux3d_model_exports.zip
+assets/cmc-serum-bottle.zip
+assets/**/lux3d_export/*.zip
+refs/*-person*
+refs/vial-ha.jpg
+refs/reactor.jpg
+refs/lab-glass.jpg
+.DS_Store
